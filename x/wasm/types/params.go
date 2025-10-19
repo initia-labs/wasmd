@@ -87,6 +87,7 @@ func DefaultParams() Params {
 	return Params{
 		CodeUploadAccess:             AllowEverybody,
 		InstantiateDefaultPermission: AccessTypeEverybody,
+		MaxWasmSize:                  uint64(DefaultMaxWasmSize),
 	}
 }
 
@@ -106,6 +107,17 @@ func (p Params) ValidateBasic() error {
 	if err := p.CodeUploadAccess.ValidateBasic(); err != nil {
 		return errors.Wrap(err, "upload access")
 	}
+	if err := validateMaxWasmSize(p.MaxWasmSize); err != nil {
+		return errors.Wrap(err, "max wasm size")
+	}
+	return nil
+}
+
+func validateMaxWasmSize(maxSize uint64) error {
+	if maxSize > uint64(MaxWasmSizeLimit) {
+		return errorsmod.Wrapf(ErrLimit, "max wasm size cannot exceed %d bytes", MaxWasmSizeLimit)
+	}
+
 	return nil
 }
 

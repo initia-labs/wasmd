@@ -58,6 +58,8 @@ message Params {
   ];
   AccessType instantiate_default_permission = 2
       [ (gogoproto.moretags) = "yaml:\"instantiate_default_permission\"" ];
+  // MaxWasmSize is the maximum size of the wasm bytecode in bytes
+  uint64 max_wasm_size = 3 [ (gogoproto.moretags) = "yaml:\"max_wasm_size\"" ];
 }
 
 // CodeInfo is data for the uploaded contract WASM code

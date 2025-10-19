@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -484,4 +485,30 @@ func (m msgServer) UpdateContractLabel(ctx context.Context, msg *types.MsgUpdate
 	}
 
 	return &types.MsgUpdateContractLabelResponse{}, nil
+}
+
+func (m msgServer) UpdateMaxWasmSize(goCtx context.Context, req *types.MsgUpdateMaxWasmSize) (*types.MsgUpdateMaxWasmSizeResponse, error) {
+	if err := req.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
+	authority := m.keeper.GetAuthority()
+	if authority != req.Authority {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid authority; expected %s, got %s", authority, req.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	params := m.keeper.GetParams(ctx)
+	params.MaxWasmSize = req.MaxWasmSize
+
+	if err := m.keeper.SetParams(ctx, params); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateMaxWasmSize,
+		sdk.NewAttribute(types.AttributeKeyNewMaxWasmSize, strconv.FormatUint(req.MaxWasmSize, 10)),
+	))
+
+	return &types.MsgUpdateMaxWasmSizeResponse{}, nil
 }

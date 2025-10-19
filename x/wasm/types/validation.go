@@ -21,11 +21,20 @@ var (
 	// MaxLabelSize is the longest label that can be used when instantiating a contract
 	MaxLabelSize = 128 // extension point for chains to customize via compile flag.
 
-	// MaxWasmSize is the largest a compiled contract code can be when storing code on chain
-	MaxWasmSize = 800 * 1024 // extension point for chains to customize via compile flag.
+	// DefaultMaxWasmSize is the default largest a compiled contract code can be when storing code on chain
+	DefaultMaxWasmSize = 800 * 1024
 
-	// MaxProposalWasmSize is the largest a gov proposal compiled contract code can be when storing code on chain
-	MaxProposalWasmSize = 3 * 1024 * 1024 // extension point for chains to customize via compile flag.
+	// MaxWasmSizeLimit is the limit of the MaxWasmSize
+	MaxWasmSizeLimit = 10 * 1024 * 1024
+
+	// DefaultMaxProposalWasmSize is the default largest a gov proposal compiled contract code can be when storing code on chain
+	DefaultMaxProposalWasmSize = 3 * 1024 * 1024
+
+	// MaxWasmSize is kept for backward compatibility, use DefaultMaxWasmSize instead
+	MaxWasmSize = DefaultMaxWasmSize
+
+	// MaxProposalWasmSize is kept for backward compatibility, use DefaultMaxProposalWasmSize instead
+	MaxProposalWasmSize = DefaultMaxProposalWasmSize
 
 	// MaxAddressCount is the maximum number of addresses allowed within a message
 	MaxAddressCount = 50
