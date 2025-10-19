@@ -64,8 +64,10 @@ func (msg MsgStoreCode) ValidateBasic() error {
 		return err
 	}
 
-	if err := validateWasmCode(msg.WASMByteCode, MaxWasmSize); err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "code bytes %s", err.Error())
+	// Only check that wasm code is not empty.
+	// Size validation happens in keeper where we have access to the configurable max_wasm_size param.
+	if len(msg.WASMByteCode) == 0 {
+		return errorsmod.Wrap(ErrEmpty, "wasm code is required")
 	}
 
 	if msg.InstantiatePermission != nil {
@@ -444,8 +446,8 @@ func (msg MsgStoreAndInstantiateContract) ValidateBasic() error {
 		return errorsmod.Wrap(err, "payload msg")
 	}
 
-	if err := validateWasmCode(msg.WASMByteCode, MaxWasmSize); err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "code bytes %s", err.Error())
+	if len(msg.WASMByteCode) == 0 {
+		return errorsmod.Wrap(ErrEmpty, "wasm code is required")
 	}
 
 	if msg.InstantiatePermission != nil {
@@ -509,8 +511,8 @@ func (msg MsgStoreAndMigrateContract) ValidateBasic() error {
 		return errorsmod.Wrap(err, "payload msg")
 	}
 
-	if err := validateWasmCode(msg.WASMByteCode, MaxWasmSize); err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "code bytes %s", err.Error())
+	if len(msg.WASMByteCode) == 0 {
+		return errorsmod.Wrap(ErrEmpty, "wasm code is required")
 	}
 
 	if msg.InstantiatePermission != nil {
@@ -552,4 +554,19 @@ func (msg MsgUpdateContractLabel) ValidateBasic() error {
 		return errorsmod.Wrap(err, "contract")
 	}
 	return nil
+}
+
+func (msg MsgUpdateMaxWasmSize) Route() string {
+	return RouterKey
+}
+
+func (msg MsgUpdateMaxWasmSize) Type() string {
+	return "update-max-wasm-size"
+}
+
+func (msg MsgUpdateMaxWasmSize) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return errorsmod.Wrap(err, "authority")
+	}
+	return validateMaxWasmSize(msg.MaxWasmSize)
 }
