@@ -31,24 +31,28 @@ func TestValidateParams(t *testing.T) {
 			src: Params{
 				CodeUploadAccess:             AllowNobody,
 				InstantiateDefaultPermission: AccessTypeNobody,
+				MaxWasmSize:                  uint64(DefaultMaxWasmSize),
 			},
 		},
 		"all good with everybody": {
 			src: Params{
 				CodeUploadAccess:             AllowEverybody,
 				InstantiateDefaultPermission: AccessTypeEverybody,
+				MaxWasmSize:                  uint64(DefaultMaxWasmSize),
 			},
 		},
 		"all good with anyOf address": {
 			src: Params{
 				CodeUploadAccess:             AccessTypeAnyOfAddresses.With(anyAddress),
 				InstantiateDefaultPermission: AccessTypeAnyOfAddresses,
+				MaxWasmSize:                  uint64(DefaultMaxWasmSize),
 			},
 		},
 		"all good with anyOf addresses": {
 			src: Params{
 				CodeUploadAccess:             AccessTypeAnyOfAddresses.With(anyAddress, otherAddress),
 				InstantiateDefaultPermission: AccessTypeAnyOfAddresses,
+				MaxWasmSize:                  uint64(DefaultMaxWasmSize),
 			},
 		},
 		"reject empty type in instantiate permission": {
@@ -104,6 +108,38 @@ func TestValidateParams(t *testing.T) {
 				InstantiateDefaultPermission: AccessTypeAnyOfAddresses,
 			},
 			expErr: true,
+		},
+		"accept zero max_wasm_size (treated as default)": {
+			src: Params{
+				CodeUploadAccess:             AllowEverybody,
+				InstantiateDefaultPermission: AccessTypeEverybody,
+				MaxWasmSize:                  0,
+			},
+			expErr: false,
+		},
+		"reject max_wasm_size exceeding limit": {
+			src: Params{
+				CodeUploadAccess:             AllowEverybody,
+				InstantiateDefaultPermission: AccessTypeEverybody,
+				MaxWasmSize:                  uint64(MaxWasmSizeLimit) + 1,
+			},
+			expErr: true,
+		},
+		"accept max_wasm_size at limit": {
+			src: Params{
+				CodeUploadAccess:             AllowEverybody,
+				InstantiateDefaultPermission: AccessTypeEverybody,
+				MaxWasmSize:                  uint64(MaxWasmSizeLimit),
+			},
+			expErr: false,
+		},
+		"accept valid max_wasm_size": {
+			src: Params{
+				CodeUploadAccess:             AllowEverybody,
+				InstantiateDefaultPermission: AccessTypeEverybody,
+				MaxWasmSize:                  1024 * 1024,
+			},
+			expErr: false,
 		},
 	}
 	for msg, spec := range specs {
@@ -167,7 +203,11 @@ func TestParamsUnmarshalJson(t *testing.T) {
 		"defaults": {
 			src: `{"code_upload_access": {"permission": "Everybody"},
 				"instantiate_default_permission": "Everybody"}`,
-			exp: DefaultParams(),
+			exp: Params{
+				CodeUploadAccess:             AllowEverybody,
+				InstantiateDefaultPermission: AccessTypeEverybody,
+				MaxWasmSize:                  0, // 0 is treated as DefaultMaxWasmSize
+			},
 		},
 	}
 	for msg, spec := range specs {

@@ -149,6 +149,16 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
+// GetMaxWasmSize returns the maximum wasm code size from params.
+// If the param is 0, it returns the default max wasm size.
+func (k Keeper) GetMaxWasmSize(ctx context.Context) uint64 {
+	maxWasmSize := k.GetParams(ctx).MaxWasmSize
+	if maxWasmSize == 0 {
+		return uint64(types.DefaultMaxWasmSize)
+	}
+	return maxWasmSize
+}
+
 // GetGasRegister returns the x/wasm module's gas register.
 func (k Keeper) GetGasRegister() types.GasRegister {
 	return k.gasRegister
@@ -173,11 +183,24 @@ func (k Keeper) create(ctx context.Context, creator sdk.AccAddress, wasmCode []b
 		return 0, checksum, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "can not create code")
 	}
 
+	// For governance operations, use DefaultMaxProposalWasmSize
+	// For regular users, use the configurable param max_wasm_size
+	var maxWasmSize uint64
+	_, isGovPolicy := authZ.(GovAuthorizationPolicy)
+	if isGovPolicy || creator.String() == k.GetAuthority() {
+		maxWasmSize = uint64(types.DefaultMaxProposalWasmSize)
+	} else {
+		maxWasmSize = k.GetMaxWasmSize(ctx)
+	}
 	if ioutils.IsGzip(wasmCode) {
 		sdkCtx.GasMeter().ConsumeGas(k.gasRegister.UncompressCosts(len(wasmCode)), "Uncompress gzip bytecode")
-		wasmCode, err = ioutils.Uncompress(wasmCode, int64(types.MaxWasmSize))
+		wasmCode, err = ioutils.Uncompress(wasmCode, int64(maxWasmSize))
 		if err != nil {
 			return 0, checksum, types.ErrCreateFailed.Wrap(errorsmod.Wrap(err, "uncompress wasm archive").Error())
+		}
+	} else {
+		if uint64(len(wasmCode)) > maxWasmSize {
+			return 0, checksum, errorsmod.Wrapf(types.ErrLimit, "wasm code size %d exceeds maximum allowed %d", len(wasmCode), maxWasmSize)
 		}
 	}
 

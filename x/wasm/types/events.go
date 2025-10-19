@@ -28,6 +28,7 @@ const (
 	EventTypeUpdateContractLabel    = "update_contract_label"
 	EventTypeUpdateCodeAccessConfig = "update_code_access_config"
 	EventTypePacketRecv             = "ibc_packet_received"
+	EventTypeUpdateMaxWasmSize      = "update_max_wasm_size"
 	// add new types to IsAcceptedEventOnRecvPacketErrorAck
 )
 
@@ -77,4 +78,5 @@ const (
 	AttributeKeyAuthorizedAddresses = "authorized_addresses"
 	AttributeKeyAckSuccess          = "success"
 	AttributeKeyAckError            = "error"
+	AttributeKeyNewMaxWasmSize      = "new_max_wasm_size"
 )

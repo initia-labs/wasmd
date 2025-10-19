@@ -123,6 +123,8 @@
     - [MsgUpdateContractLabelResponse](#cosmwasm.wasm.v1.MsgUpdateContractLabelResponse)
     - [MsgUpdateInstantiateConfig](#cosmwasm.wasm.v1.MsgUpdateInstantiateConfig)
     - [MsgUpdateInstantiateConfigResponse](#cosmwasm.wasm.v1.MsgUpdateInstantiateConfigResponse)
+    - [MsgUpdateMaxWasmSize](#cosmwasm.wasm.v1.MsgUpdateMaxWasmSize)
+    - [MsgUpdateMaxWasmSizeResponse](#cosmwasm.wasm.v1.MsgUpdateMaxWasmSizeResponse)
     - [MsgUpdateParams](#cosmwasm.wasm.v1.MsgUpdateParams)
     - [MsgUpdateParamsResponse](#cosmwasm.wasm.v1.MsgUpdateParamsResponse)
   
@@ -270,6 +272,7 @@ Params defines the set of wasm parameters.
 | ----- | ---- | ----- | ----------- |
 | `code_upload_access` | [AccessConfig](#cosmwasm.wasm.v1.AccessConfig) |  |  |
 | `instantiate_default_permission` | [AccessType](#cosmwasm.wasm.v1.AccessType) |  |  |
+| `max_wasm_size` | [uint64](#uint64) |  | MaxWasmSize is the maximum size of the wasm bytecode in bytes |
 
 
 
@@ -2018,6 +2021,34 @@ MsgUpdateInstantiateConfigResponse returns empty data
 
 
 
+<a name="cosmwasm.wasm.v1.MsgUpdateMaxWasmSize"></a>
+
+### MsgUpdateMaxWasmSize
+MsgUpdateMaxWasmSize defines a governance operation for updating the
+max_wasm_size parameter.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | Authority is the address of the governance account. |
+| `max_wasm_size` | [uint64](#uint64) |  | MaxWasmSize is the maximum size of the wasm bytecode in bytes |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.MsgUpdateMaxWasmSizeResponse"></a>
+
+### MsgUpdateMaxWasmSizeResponse
+MsgUpdateMaxWasmSizeResponse defines the response structure for executing a
+MsgUpdateMaxWasmSize message.
+
+
+
+
+
+
 <a name="cosmwasm.wasm.v1.MsgUpdateParams"></a>
 
 ### MsgUpdateParams
@@ -2095,6 +2126,7 @@ Since: 0.42 | |
 | `UpdateContractLabel` | [MsgUpdateContractLabel](#cosmwasm.wasm.v1.MsgUpdateContractLabel) | [MsgUpdateContractLabelResponse](#cosmwasm.wasm.v1.MsgUpdateContractLabelResponse) | UpdateContractLabel sets a new label for a smart contract
 
 Since: 0.43 | |
+| `UpdateMaxWasmSize` | [MsgUpdateMaxWasmSize](#cosmwasm.wasm.v1.MsgUpdateMaxWasmSize) | [MsgUpdateMaxWasmSizeResponse](#cosmwasm.wasm.v1.MsgUpdateMaxWasmSizeResponse) | UpdateMaxWasmSize defines a governance operation for updating the max_wasm_size parameter. The authority is defined in the keeper. | |
 
  <!-- end services -->
 
