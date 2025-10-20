@@ -1484,3 +1484,70 @@ func TestMsgUpdateContractLabel(t *testing.T) {
 		})
 	}
 }
+
+func TestMsgUpdateMaxWasmSizeValidation(t *testing.T) {
+	goodAddress := sdk.AccAddress(make([]byte, 20)).String()
+
+	specs := map[string]struct {
+		src    MsgUpdateMaxWasmSize
+		expErr bool
+	}{
+		"all good": {
+			src: MsgUpdateMaxWasmSize{
+				Authority:   goodAddress,
+				MaxWasmSize: 1024 * 1024,
+			},
+		},
+		"bad authority": {
+			src: MsgUpdateMaxWasmSize{
+				Authority:   badAddress,
+				MaxWasmSize: 1024 * 1024,
+			},
+			expErr: true,
+		},
+		"empty authority": {
+			src: MsgUpdateMaxWasmSize{
+				MaxWasmSize: 1024 * 1024,
+			},
+			expErr: true,
+		},
+		"zero max_wasm_size": {
+			src: MsgUpdateMaxWasmSize{
+				Authority:   goodAddress,
+				MaxWasmSize: 0,
+			},
+			expErr: true,
+		},
+		"max_wasm_size exceeds limit": {
+			src: MsgUpdateMaxWasmSize{
+				Authority:   goodAddress,
+				MaxWasmSize: uint64(MaxWasmSizeLimit) + 1,
+			},
+			expErr: true,
+		},
+		"max_wasm_size at limit": {
+			src: MsgUpdateMaxWasmSize{
+				Authority:   goodAddress,
+				MaxWasmSize: uint64(MaxWasmSizeLimit),
+			},
+			expErr: false,
+		},
+		"max_wasm_size minimum valid": {
+			src: MsgUpdateMaxWasmSize{
+				Authority:   goodAddress,
+				MaxWasmSize: 1,
+			},
+			expErr: false,
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			err := spec.src.ValidateBasic()
+			if spec.expErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}

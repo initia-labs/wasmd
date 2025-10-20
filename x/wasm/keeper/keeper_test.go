@@ -398,6 +398,91 @@ func TestCreateWithBrokenGzippedPayload(t *testing.T) {
 	assert.GreaterOrEqual(t, gm.GasConsumed(), storetypes.Gas(121384)) // 809232 * 0.15 (default uncompress costs) = 121384
 }
 
+func TestCreateWithMaxWasmSizeLimit(t *testing.T) {
+	ctx, keepers := CreateTestInput(t, false, AvailableCapabilities)
+	keeper := keepers.ContractKeeper
+
+	deposit := sdk.NewCoins(sdk.NewInt64Coin("denom", 100000))
+	creator := keepers.Faucet.NewFundedRandomAccount(ctx, deposit...)
+
+	// Set max_wasm_size to a value smaller than the contract
+	params := types.DefaultParams()
+	params.MaxWasmSize = uint64(len(hackatomWasm) - 1)
+	err := keepers.WasmKeeper.SetParams(ctx, params)
+	require.NoError(t, err)
+
+	// Try to create with wasm code larger than max_wasm_size
+	_, _, err = keeper.Create(ctx, creator, hackatomWasm, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "exceeds maximum allowed")
+}
+
+func TestCreateWithMaxWasmSizeGzipped(t *testing.T) {
+	ctx, keepers := CreateTestInput(t, false, AvailableCapabilities)
+	keeper := keepers.ContractKeeper
+
+	deposit := sdk.NewCoins(sdk.NewInt64Coin("denom", 100000))
+	creator := keepers.Faucet.NewFundedRandomAccount(ctx, deposit...)
+
+	wasmCode, err := os.ReadFile("./testdata/hackatom.wasm.gzip")
+	require.NoError(t, err, "reading gzipped WASM code")
+
+	// Set max_wasm_size to a value smaller than the uncompressed
+	params := types.DefaultParams()
+	params.MaxWasmSize = uint64(len(hackatomWasm) - 1)
+	err = keepers.WasmKeeper.SetParams(ctx, params)
+	require.NoError(t, err)
+
+	// Try to create with gzipped wasm code that uncompresses to larger than max_wasm_size
+	_, _, err = keeper.Create(ctx, creator, wasmCode, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "exceeds limit")
+}
+
+func TestCreateWithMaxWasmSizeAcceptsAtLimit(t *testing.T) {
+	ctx, keepers := CreateTestInput(t, false, AvailableCapabilities)
+	keeper := keepers.ContractKeeper
+
+	deposit := sdk.NewCoins(sdk.NewInt64Coin("denom", 100000))
+	creator := keepers.Faucet.NewFundedRandomAccount(ctx, deposit...)
+
+	// Set max_wasm_size to exactly the size of the contract
+	params := types.DefaultParams()
+	params.MaxWasmSize = uint64(len(hackatomWasm))
+	err := keepers.WasmKeeper.SetParams(ctx, params)
+	require.NoError(t, err)
+
+	// Should succeed when code size equals max_wasm_size
+	contractID, _, err := keeper.Create(ctx, creator, hackatomWasm, nil)
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), contractID)
+}
+
+func TestCreateWithGovAuthorityUsesProposalLimit(t *testing.T) {
+	ctx, keepers := CreateTestInput(t, false, AvailableCapabilities)
+
+	// Set a very small max_wasm_size for regular users
+	params := types.DefaultParams()
+	params.MaxWasmSize = 100
+	err := keepers.WasmKeeper.SetParams(ctx, params)
+	require.NoError(t, err)
+
+	// Get the governance authority address
+	govAuthority := keepers.WasmKeeper.GetAuthority()
+	govAddr, err := sdk.AccAddressFromBech32(govAuthority)
+	require.NoError(t, err)
+
+	deposit := sdk.NewCoins(sdk.NewInt64Coin("denom", 100000))
+	keepers.Faucet.Fund(ctx, govAddr, deposit...)
+
+	// Governance should be able to upload code larger than max_wasm_size
+	// using the DefaultMaxProposalWasmSize limit instead
+	govKeeper := NewGovPermissionKeeper(keepers.WasmKeeper)
+	contractID, _, err := govKeeper.Create(ctx, govAddr, hackatomWasm, nil)
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), contractID)
+}
+
 func TestInstantiate(t *testing.T) {
 	ctx, keepers := CreateTestInput(t, false, AvailableCapabilities)
 
