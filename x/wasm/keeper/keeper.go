@@ -146,8 +146,13 @@ func (k Keeper) GetAuthority() string {
 }
 
 // GetMaxWasmSize returns the maximum wasm code size from params.
+// If the param is 0, it returns the default max wasm size.
 func (k Keeper) GetMaxWasmSize(ctx context.Context) uint64 {
-	return k.GetParams(ctx).MaxWasmSize
+	maxWasmSize := k.GetParams(ctx).MaxWasmSize
+	if maxWasmSize == 0 {
+		return uint64(types.DefaultMaxWasmSize)
+	}
+	return maxWasmSize
 }
 
 // GetGasRegister returns the x/wasm module's gas register.

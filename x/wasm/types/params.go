@@ -107,8 +107,11 @@ func (p Params) ValidateBasic() error {
 	if err := p.CodeUploadAccess.ValidateBasic(); err != nil {
 		return errors.Wrap(err, "upload access")
 	}
-	if err := validateMaxWasmSize(p.MaxWasmSize); err != nil {
-		return errors.Wrap(err, "max wasm size")
+	// Allow 0 for backward compatibility (treated as DefaultMaxWasmSize)
+	if p.MaxWasmSize != 0 {
+		if err := validateMaxWasmSize(p.MaxWasmSize); err != nil {
+			return errors.Wrap(err, "max wasm size")
+		}
 	}
 	return nil
 }

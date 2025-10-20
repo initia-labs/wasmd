@@ -109,13 +109,13 @@ func TestValidateParams(t *testing.T) {
 			},
 			expErr: true,
 		},
-		"reject zero max_wasm_size": {
+		"accept zero max_wasm_size (treated as default)": {
 			src: Params{
 				CodeUploadAccess:             AllowEverybody,
 				InstantiateDefaultPermission: AccessTypeEverybody,
 				MaxWasmSize:                  0,
 			},
-			expErr: true,
+			expErr: false,
 		},
 		"reject max_wasm_size exceeding limit": {
 			src: Params{
@@ -203,7 +203,11 @@ func TestParamsUnmarshalJson(t *testing.T) {
 		"defaults": {
 			src: `{"code_upload_access": {"permission": "Everybody"},
 				"instantiate_default_permission": "Everybody"}`,
-			exp: DefaultParams(),
+			exp: Params{
+				CodeUploadAccess:             AllowEverybody,
+				InstantiateDefaultPermission: AccessTypeEverybody,
+				MaxWasmSize:                  0, // 0 is treated as DefaultMaxWasmSize
+			},
 		},
 	}
 	for msg, spec := range specs {
