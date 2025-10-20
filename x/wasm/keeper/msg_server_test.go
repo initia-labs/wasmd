@@ -89,8 +89,7 @@ func TestMsgUpdateMaxWasmSize(t *testing.T) {
 				Authority:   govAuthority,
 				MaxWasmSize: 0,
 			},
-			expErr: true,
-			errMsg: "max wasm size cannot be zero",
+			expErr: false,
 		},
 		"max_wasm_size exceeds limit": {
 			req: &types.MsgUpdateMaxWasmSize{

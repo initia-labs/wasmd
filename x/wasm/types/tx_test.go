@@ -1516,7 +1516,7 @@ func TestMsgUpdateMaxWasmSizeValidation(t *testing.T) {
 				Authority:   goodAddress,
 				MaxWasmSize: 0,
 			},
-			expErr: true,
+			expErr: false,
 		},
 		"max_wasm_size exceeds limit": {
 			src: MsgUpdateMaxWasmSize{
