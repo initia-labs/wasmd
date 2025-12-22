@@ -54,6 +54,11 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 		return err
 	}
 
+	// ensure we close the cache multi store
+	if closer, ok := cacheMS.(io.Closer); ok {
+		defer closer.Close()
+	}
+
 	ctx := sdk.NewContext(cacheMS, tmproto.Header{}, false, log.NewNopLogger())
 	seenBefore := make(map[string]bool)
 	var rerr error
